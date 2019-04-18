@@ -121,13 +121,33 @@ func TestInstallOrUpgrade(t *testing.T) {
 		}
 	)
 
-	if TestHelper.UpgradeFromVersion() != "" {
-		cmd = "upgrade"
-	}
-
 	if TestHelper.AutoInject() {
 		args = append(args, "--proxy-auto-inject")
 		linkerdDeployReplicas["linkerd-proxy-injector"] = deploySpec{1, []string{"proxy-injector"}}
+	}
+
+	if TestHelper.UpgradeFromVersion() != "" {
+		cmd = "upgrade"
+
+		// test 2-stage install during upgrade
+		configUpgrade := []string{cmd, "config"}
+		if TestHelper.AutoInject() {
+			configUpgrade = append(configUpgrade, "--proxy-auto-inject")
+		}
+
+		out, _, err := TestHelper.LinkerdRun(configUpgrade...)
+		if err != nil {
+			t.Fatalf("linkerd upgrade config command failed\n%s", out)
+		}
+
+		// apply stage 1
+		out, err = TestHelper.KubectlApply(out, TestHelper.GetLinkerdNamespace())
+		if err != nil {
+			t.Fatalf("kubectl apply command failed\n%s", out)
+		}
+
+		// prepare for stage 2
+		args = append([]string{"control-plane"}, args...)
 	}
 
 	exec := append([]string{cmd}, args...)

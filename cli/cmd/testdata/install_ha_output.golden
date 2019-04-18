@@ -190,12 +190,6 @@ spec:
 ### Prometheus RBAC
 ###
 ---
-kind: ServiceAccount
-apiVersion: v1
-metadata:
-  name: linkerd-prometheus
-  namespace: linkerd
----
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -218,15 +212,15 @@ subjects:
   name: linkerd-prometheus
   namespace: linkerd
 ---
-###
-### Service Profile Validator RBAC
-###
----
 kind: ServiceAccount
 apiVersion: v1
 metadata:
-  name: linkerd-sp-validator
+  name: linkerd-prometheus
   namespace: linkerd
+---
+###
+### Service Profile Validator RBAC
+###
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -253,6 +247,12 @@ roleRef:
   kind: ClusterRole
   name: linkerd-linkerd-sp-validator
   apiGroup: rbac.authorization.k8s.io
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: linkerd-sp-validator
+  namespace: linkerd
 ---
 kind: ConfigMap
 apiVersion: v1
